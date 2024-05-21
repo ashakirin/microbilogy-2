@@ -6,6 +6,8 @@ import java.util.Map;
 public class GenomDto {
     private String code;
     private String ncNotation;
+    private Map<String, PositionsCounters> mutationsMap;
+
 
     private Map<String, String> props = new HashMap<>();
 
@@ -28,5 +30,13 @@ public class GenomDto {
 
     public Map<String, String> getProps() {
         return props;
+    }
+
+    public Map<String, PositionsCounters> getMutationsMap() {
+        return mutationsMap;
+    }
+
+    public void setMutationsMap(Map<String, PositionsCounters> mutationsMap) {
+        this.mutationsMap = mutationsMap;
     }
 }

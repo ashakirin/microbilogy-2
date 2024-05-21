@@ -7,8 +7,12 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class DescriptionFileParser {
+    private static Pattern PROTEIN_ID_PATTERN = Pattern.compile("\\|([^|]+)\\|");
+
 
     public Map<String, DescriptionDto> parseDescriptionFile(String filePath) {
         Map<String, DescriptionDto> result = new HashMap<>();
@@ -17,7 +21,9 @@ public class DescriptionFileParser {
             List<String> genoms = (List<String>) Arrays.asList(content.split("\tgene\n"));
             for (String genom : genoms) {
                 String xref = extractAttribute(genom, "\t\t\tdb_xref");
-                if (xref == null) {
+                String proteinId = parseProteinId(extractAttribute(genom, "\t\t\tprotein_id"));
+
+                if (xref == null && proteinId == null) {
                     continue;
                 }
                 String gene = extractAttribute(genom, "\t\t\tgene");
@@ -29,13 +35,30 @@ public class DescriptionFileParser {
                 descriptionDto.setLocusTag(locusTag);
                 descriptionDto.setNote(note);
                 descriptionDto.setProduct(product);
-                result.put(xref, descriptionDto);
+                if (xref != null) {
+                    result.put(xref, descriptionDto);
+                }
+                if (proteinId != null) {
+                    result.put(proteinId, descriptionDto);
+                }
             }
             return result;
         } catch (IOException e) {
             throw new IllegalArgumentException("Cannot read input description file: " + e.getMessage(), e);
         }
 
+    }
+
+    private String parseProteinId(String proteinIdValue) {
+        if (proteinIdValue == null) {
+            return null;
+        }
+        Matcher matcher = PROTEIN_ID_PATTERN.matcher(proteinIdValue);
+        if (matcher.find()) {
+            return matcher.group(1);
+        } else {
+            return proteinIdValue;
+        }
     }
 
     private String extractAttribute(String genom, String attrName) {
